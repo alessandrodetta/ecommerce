@@ -1,0 +1,24 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Backend",
+      "request": "launch",
+      "mainClass": "com.cce.ecommerce.EcommerceWebAppApplication",
+      "projectName": "ecommerce backend",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "chrome",
+      "name": "Frontend (+Vite start)",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend",
+      "preLaunchTask": "npm: dev - frontend"
+    }
+  ]
+}
