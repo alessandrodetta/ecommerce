@@ -1,7 +1,5 @@
 package com.cce.ecommerce.controllers;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -21,7 +18,6 @@ import com.cce.ecommerce.models.Cart;
 import com.cce.ecommerce.models.User;
 import com.cce.ecommerce.models.requests.LoginRequest;
 import com.cce.ecommerce.models.requests.RegisterRequest;
-import com.cce.ecommerce.services.CartService;
 import com.cce.ecommerce.services.UserService;
 
 import jakarta.servlet.http.Cookie;
@@ -40,39 +36,25 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private CartService cartService;
-
     @PostMapping("/api/login")
     void login(HttpServletRequest request, HttpServletResponse response,
             @CookieValue(name = "GUESTUSERID", required = false) String guestUserId,
             @RequestBody LoginRequest loginRequest) {
-        try {
-            UsernamePasswordAuthenticationToken requestToken = UsernamePasswordAuthenticationToken
-                    .unauthenticated(loginRequest.getUsername(), loginRequest.getPassword());
-            Authentication authentication = authenticationManager.authenticate(requestToken);
-            SecurityContext context = securityContextHolderStrategy.createEmptyContext();
-            context.setAuthentication(authentication);
-            securityContextHolderStrategy.setContext(context);
-            securityContextRepository.saveContext(context, request, response);
-            User authUser = ((User) authentication.getPrincipal());
-            // if the guest was the one who registered and now is trying to login, temporary
-            // checking if IDs are
-            // different. This should not happen because guestUserId should had been already
-            // dead by now anyway (cookies
-            // should be unset for registerd guest after registered)
-            if (guestUserId != null && !authUser.getId().equals(Long.decode(guestUserId))) {
-                User guestUser = userService.findById(Long.decode(guestUserId));
-                Cart cart = guestUser.getCart();
-                if (cart != null) {
-                    userService.mergeCart(authUser, guestUser);
-                }
-
+        UsernamePasswordAuthenticationToken requestToken = UsernamePasswordAuthenticationToken
+                .unauthenticated(loginRequest.getUsername(), loginRequest.getPassword());
+        Authentication authentication = authenticationManager.authenticate(requestToken);
+        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+        context.setAuthentication(authentication);
+        securityContextHolderStrategy.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+        User authUser = ((User) authentication.getPrincipal());
+        if (guestUserId != null && !authUser.getId().equals(Long.decode(guestUserId))) {
+            User guestUser = userService.findById(Long.decode(guestUserId));
+            Cart cart = guestUser.getCart();
+            if (cart != null) {
+                userService.mergeCart(authUser, guestUser);
             }
-        } catch (Exception e) {
-            throw e;
         }
-
     }
 
     @PostMapping("/api/register")
@@ -85,9 +67,8 @@ public class UserController {
             toBeDeletedCookie.setMaxAge(0);
             response.addCookie(toBeDeletedCookie);
         } else {
-            User user = userService.addUser(registerRequest.getUsername(),
+            userService.addUser(registerRequest.getUsername(),
                     registerRequest.getPassword(), "ROLE_USER");
         }
-
     }
 }

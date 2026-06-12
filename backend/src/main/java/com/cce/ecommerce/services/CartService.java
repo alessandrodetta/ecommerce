@@ -53,4 +53,9 @@ public class CartService {
         cartItemRepository.delete(itemToRemove);
         return cartRepo.save(cart);
     }
+
+    public void deleteCart(Cart sourceCart) {
+        sourceCart.getUser().setCart(null);
+        cartRepo.delete(sourceCart);
+    }
 }

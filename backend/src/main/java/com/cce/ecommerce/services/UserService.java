@@ -85,7 +85,7 @@ public class UserService implements UserDetailsService {
                 }
             }
             destCart.recalculateTotal();
-            cartService.deleteItems(sourceCart);
+            cartService.deleteCart(sourceCart);
         }
     }
 }

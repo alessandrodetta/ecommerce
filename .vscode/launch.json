@@ -9,7 +9,7 @@
       "name": "Backend",
       "request": "launch",
       "mainClass": "com.cce.ecommerce.EcommerceWebAppApplication",
-      "projectName": "ecommerce backend",
+      "projectName": "",
       "envFile": "${workspaceFolder}/.env"
     },
     {

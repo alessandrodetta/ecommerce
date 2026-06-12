@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
@@ -23,14 +26,13 @@ import com.cce.ecommerce.models.CartItem;
 import com.cce.ecommerce.models.Product;
 import com.cce.ecommerce.models.User;
 import com.cce.ecommerce.models.requests.CartItemUpdateRequest;
+import com.cce.ecommerce.resolvers.CurrentUser;
 import com.cce.ecommerce.services.CartService;
 import com.cce.ecommerce.services.ProductService;
 import com.cce.ecommerce.services.UserService;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @RestController
 public class CartController {
@@ -43,63 +45,33 @@ public class CartController {
     @Autowired
     ProductService productService;
 
-    // @GetMapping("/api/user")
-    // User getUser(@RequestParam Long id) {
-    // return userService.findById(id);
-    // }
-
     @GetMapping("/api/cart")
-    Cart getCart(HttpServletRequest request, @CookieValue(name = "GUESTUSERID", required = false) String guestUserId,
-            @CurrentSecurityContext() SecurityContext securityContext)
-            throws Exception {
-        Authentication auth = securityContext.getAuthentication();
-        Long userId = null;
-        if (auth instanceof AnonymousAuthenticationToken) {
-            if (guestUserId == null) {
-                return new Cart();
-            }
-            userId = Long.decode(guestUserId);
-        } else {
-            User user = (User) auth.getPrincipal();
-            if (user == null) {
-                throw new Exception("Session with no authentication");
-            }
-            userId = user.getId();
+    ResponseEntity<Cart> getCart(HttpServletResponse res, @CurrentUser User user) {
+        // 1. Reperisco l'utente. User a null significa che è un visitatore nuovo.
+        if (user == null) {
+            return ResponseEntity.ok(new Cart());
         }
 
-        User user = userService.findById(userId);
         Cart cart = user.getCart();
-        return cart;
+        if (cart == null) {
+            cart = new Cart(user, new ArrayList<CartItem>());
+        }
+        return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/api/cart/items")
-    Cart addOrUpdateItem(HttpServletRequest request, HttpServletResponse response,
-            @CookieValue(name = "GUESTUSERID", required = false) String guestUserId,
-            @RequestBody() CartItemUpdateRequest updateRequest,
-            @CurrentSecurityContext() SecurityContext securityContext)
-            throws Exception {
-
-        Authentication auth = securityContext.getAuthentication();
+    ResponseEntity<Cart> addOrUpdateItem(HttpServletResponse response,
+            @CurrentUser User user,
+            @RequestBody() CartItemUpdateRequest updateRequest) {
 
         // 1. reperire l'utente o crearne uno nuovo
-        User user = null;
-        if (auth instanceof AnonymousAuthenticationToken) {
-            if (guestUserId == null) {
-                user = userService.createGuestUser();
-                Cookie guestUserCookie = new Cookie("GUESTUSERID", user.getId().toString());
-                guestUserCookie.setPath("/api");
-                guestUserCookie.setMaxAge(30 * 24 * 60 * 60);
-                guestUserCookie.setHttpOnly(true);
-                response.addCookie(guestUserCookie);
-            } else {
-                user = userService.findById(Long.decode(guestUserId));
-            }
-        } else {
-            user = (User) auth.getPrincipal();
-            if (user == null) {
-                throw new Exception("Session with no authentication");
-            }
-            user = userService.findById(user.getId());
+        if (user == null) {
+            user = userService.createGuestUser();
+            Cookie guestUserCookie = new Cookie("GUESTUSERID", user.getId().toString());
+            guestUserCookie.setPath("/api");
+            guestUserCookie.setMaxAge(30 * 24 * 60 * 60);
+            guestUserCookie.setHttpOnly(true);
+            response.addCookie(guestUserCookie);
         }
 
         // 2. reperire il carrello dell'utente o ne crea uno nuovo
@@ -129,48 +101,7 @@ public class CartController {
 
         cart = cartService.updateCart(cart);
 
-        return cart;
+        return ResponseEntity.ok(cart);
     }
-
-    // @DeleteMapping("/api/cart/items")
-    // Cart removeItem(@CookieValue(name = "GUESTUSERID", required = false) String
-    // guestUserId,
-    // @RequestBody() CartItem itemToRemove, @CurrentSecurityContext()
-    // SecurityContext securityContext)
-    // throws Exception {
-    // Authentication auth = securityContext.getAuthentication();
-    // User user = null;
-    // if (auth instanceof AnonymousAuthenticationToken) {
-    // if (guestUserId == null) {
-    // return null;
-    // } else {
-    // user = userService.findById(Long.decode(guestUserId));
-    // }
-    // } else {
-    // user = (User) auth.getPrincipal();
-    // if (user == null) {
-    // throw new Exception("Session with no authentication");
-    // }
-    // user = userService.findById(user.getId());
-    // }
-
-    // Cart cart = user.getCart();
-
-    // List<CartItem> cartItems = cart.getItems();
-    // Optional<CartItem> itemToUpdate = cartItems.stream()
-    // .filter(item ->
-    // item.getProduct().getId().equals(itemToRemove.getProduct().getId())).findFirst();
-
-    // if (itemToUpdate.isPresent()) {
-    // itemToUpdate.get().decrementQuantity(itemToRemove.getQuantity());
-    // if (itemToUpdate.get().getQuantity() <= 0) {
-    // cartService.deleteItem(cart, itemToUpdate.get());
-    // }
-    // }
-
-    // cart = cartService.updateCart(cart);
-
-    // return cart;
-    // }
 
 }
