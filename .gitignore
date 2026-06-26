@@ -81,3 +81,7 @@ docs/
 
 .env
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,maven,java,react
+
+# Ignore setup.sql and data.sql
+backend/docker/scripts/startup/setup.sql
+backend/src/main/resources/data.sql

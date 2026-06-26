@@ -1,0 +1,77 @@
+INSERT INTO product_category (id,title) VALUES ( 0,'Telecom' );
+
+INSERT INTO product_category (
+    id,
+    title
+) VALUES ( 1,
+           'Space' );
+
+INSERT INTO product_category (
+    id,
+    title
+) VALUES ( 2,
+           'Medical' );
+
+INSERT INTO product (
+    id,
+    product_category_id,
+    title,
+    description,
+    detailed_description,
+    price,
+    image
+) VALUES ( 0,
+           0,
+           'SP-LINK',
+           'SP-LINK cable',
+           '',
+           200.0,
+           '' );
+
+INSERT INTO product (
+    id,
+    product_category_id,
+    title,
+    description,
+    detailed_description,
+    price,
+    image
+) VALUES ( 1,
+           1,
+           'SP-LINK Minor',
+           'SP-LINK cable',
+           '',
+           100.0,
+           '' );
+
+INSERT INTO product (
+    id,
+    product_category_id,
+    title,
+    description,
+    detailed_description,
+    price,
+    image
+) VALUES ( 2,
+           1,
+           'SP-LINK Budget',
+           'SP-LINK cable',
+           '',
+           15.0,
+           '' );
+
+INSERT INTO product (
+    id,
+    product_category_id,
+    title,
+    description,
+    detailed_description,
+    price,
+    image
+) VALUES ( 3,
+           2,
+           'SP-LINK Pro',
+           'SP-LINK cable',
+           '',
+           500.0,
+           '' );
