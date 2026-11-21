@@ -59,6 +59,8 @@ export default function Products(props: { updateCart: any }) {
     }
   }
 
+  const ts = 2;
+
   const categoryOptions = categories.map((category: any) => (
     <option key={category.id} value={category.title}>
       {category.title}
